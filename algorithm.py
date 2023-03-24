@@ -1,5 +1,7 @@
 from collections import OrderedDict
 
+# Função que toma como parâmetro os dois arquivos do exercício, o grafo e a heurística o separando em dois dicionários
+# que facilitam a utilização nas funções que se seguem
 def initializeFiles(file1, file2):
     dictGraph = OrderedDict()
     dictHeuristic = OrderedDict()
@@ -28,10 +30,14 @@ def initializeFiles(file1, file2):
 
 def initialize(city, dictHeuristic):
     accessed = []
+    position = OrderedDict()
     for i in dictHeuristic.keys():
         if i == city:
             node = [(i, "0+"+dictHeuristic.get(i)[0])]
-    return accessed, node
+            if i not in position.keys():
+                position[i] = 0 
+    
+    return accessed, node, position
 
 def roundtrip(dictGraph):
     for key1 in dictGraph.keys():
@@ -43,12 +49,19 @@ def roundtrip(dictGraph):
 
 def main():
     dictGraph, dictHeuristic = initializeFiles('Grafo.txt', 'Heuristica.txt')
-    accessed, node = initialize('Arad', dictHeuristic)
+    accessed, node, position = initialize('Arad', dictHeuristic)
     dictGraph = roundtrip(dictGraph)
     currentCity = node[0]
+    it = 0
+    aux = 0
     smaller = '0'
     route = ''
     while currentCity[0] != 'Bucareste' and currentCity[1] != eval(smaller):
+        
+        print(f"Iteração = {it}, que tem os seguintes nós abertos!")
+        print(node)
+        print()
+
         smaller = node[0][1]
         smallerCity = ''
         for i in node:
@@ -57,18 +70,31 @@ def main():
                 smallerCity = i[0]
 
         currentCity = ((smallerCity, smaller))
-        route = route+"--->"+str((smallerCity,eval(smaller)))
+    
+        if position[smallerCity] >= aux:
+            route = route+"--->"+str((smallerCity,eval(smaller)))
+            aux += 1
+
         if(currentCity[0] != 'Bucareste' and currentCity[1] != eval(smaller)):
             if dictGraph[smallerCity]:
                 parcel = smaller.split('+')
                 for i in dictGraph[smallerCity]:
                     s = int(parcel[0])+int(i[0][1])
                     node.append((i[0][0], str(s)+"+"+dictHeuristic.get(i[0][0])[0]))
+                    if i[0][0] not in position.keys():
+                        position[i[0][0]] = (it + 1)        
 
             for i in node:
                 if i[0] == smallerCity:
+                    print(f"Abertura do nó {i[0]}")
                     node.remove((smallerCity, i[1]))
                     accessed.append(smallerCity)
 
+        it += 1
+
+    print("Cidades que tiveram os nós abertos, em ordem:")
+    print(accessed)
+    print()
+    print("Rota final:")
     print(route)
 main()
